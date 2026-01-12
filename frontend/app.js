@@ -258,12 +258,12 @@ function viewHome() {
       <div class="hero-card">
         <h1>Ink & Quills</h1>
         <p>Tus reseñas literarias en un solo lugar</p>
-
+       
         <div class="search">
           <input id="q" type="search" placeholder="Buscar por título, autor, tema..." value="${escapeHTML(state.lastQuery)}" />
           <button id="searchBtn" class="btn">Buscar</button>
         </div>
-
+        <p class="muted tiny">Escribe una búsqueda para empezar o selecciona una categoría.</p>
         <div class="chips">
           <button class="chip" data-query="fiction">Ficción</button>
           <button class="chip" data-query="philosophy">Filosofía</button>
@@ -271,14 +271,14 @@ function viewHome() {
           <button class="chip" data-query="society">Sociedad</button>
         </div>
 
-        <p class="muted tiny">Fuente: books-service (Python + Mongo) vía Gateway. Favoritos en Postgres por usuario.</p>
+       
       </div>
     </section>
 
     <section class="container">
       <div class="section-head">
         <h2>Resultados</h2>
-        <span class="muted" id="resultMeta">${state.lastQuery ? `${state.results.length} resultado(s)` : "Escribe una búsqueda para empezar"}</span>
+        <span class="muted" id="resultMeta">${state.lastQuery ? `${state.results.length} resultado(s)` : ""}</span>
       </div>
 
       <div id="grid" class="grid">
