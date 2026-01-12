@@ -2,6 +2,53 @@
 
 Aplicación web de catálogo de libros con arquitectura de microservicios.
 
+## 🚀 Inicio Rápido
+
+### Requisitos previos
+
+- **Docker Desktop** (incluye Docker y Docker Compose)
+  - Descargar de: https://www.docker.com/products/docker-desktop
+  - Versión mínima: Docker 20.x, Docker Compose 2.x
+
+### Levantar la aplicación completa
+
+```bash
+docker compose up --build
+```
+
+Este comando levanta automáticamente:
+- ✅ Frontend en http://localhost:3000
+- ✅ API Gateway en http://localhost:8080
+- ✅ Bases de datos (PostgreSQL y MongoDB)
+- ✅ Todos los microservicios
+
+**¡Eso es todo!** No necesitas instalar Python, Node.js, ni ninguna otra dependencia.
+
+### Acceder a la aplicación
+
+1. **Frontend**: http://localhost:3000
+2. **API Gateway**: http://localhost:8080
+3. **Documentación API (Swagger)**: http://localhost:8080/docs
+
+### Detener la aplicación
+
+```bash
+docker compose down
+```
+
+---
+
+## 📦 Arquitectura
+
+El proyecto consta de 6 servicios en contenedores Docker:
+
+1. **Frontend** (Nginx) - Interfaz de usuario en http://localhost:3000
+2. **Gateway** (Node.js) - API Gateway en http://localhost:8080
+3. **Users Service** (Node.js) - Autenticación y favoritos
+4. **Books Service** (Python/Flask) - Búsqueda de libros
+5. **PostgreSQL** - Base de datos para usuarios y favoritos
+6. **MongoDB** - Base de datos caché para libros
+
 ## 0. Software necesario
 
 Para ejecutar este proyecto necesitas instalar:
@@ -15,13 +62,14 @@ Para ejecutar este proyecto necesitas instalar:
 
 ## 1. Servicios que hay que arrancar
 
-El proyecto consta de 5 servicios que se arrancan automáticamente con Docker Compose:
+El proyecto consta de 6 servicios que se arrancan automáticamente con Docker Compose:
 
-1. **PostgreSQL** (Base de datos para usuarios y favoritos)
-2. **MongoDB** (Base de datos caché para libros)
-3. **Users Service** (Microservicio de autenticación y favoritos - Node.js)
-4. **Books Service** (Microservicio de búsqueda de libros - Python)
-5. **Gateway** (API Gateway - Node.js)
+1. **Frontend** (Servidor web Nginx para la interfaz de usuario)
+2. **PostgreSQL** (Base de datos para usuarios y favoritos)
+3. **MongoDB** (Base de datos caché para libros)
+4. **Users Service** (Microservicio de autenticación y favoritos - Node.js)
+5. **Books Service** (Microservicio de búsqueda de libros - Python)
+6. **Gateway** (API Gateway - Node.js)
 
 ## 2. Dependencias que hay que instalar
 
@@ -29,22 +77,23 @@ El proyecto consta de 5 servicios que se arrancan automáticamente con Docker Co
 
 Docker se encarga de instalar todas las dependencias dentro de cada contenedor:
 
+- **Frontend**: Servidor Nginx (Alpine Linux)
 - **Gateway**: `express`, `http-proxy-middleware`, `cors`, `swagger-ui-express`, `yamljs`
 - **Users Service**: `express`, `pg`, `bcryptjs`, `jsonwebtoken`, `cors`, `helmet`
 - **Books Service**: `flask`, `flask-cors`, `pymongo`, `requests`, `python-dotenv`
 
-## 3. Cómo arrancar la parte servidora
+## 3. Cómo arrancar la aplicación
 
 ### Paso 1: Clonar o abrir el proyecto
 
 ```bash
-cd "c:\Users\Sara\Desktop\Web de datos"
+cd "c:\Users\Sara\Desktop\WebDeDatosGIT\WebDeDatos"
 ```
 
 ### Paso 2: Levantar todos los servicios con Docker Compose
 
 ```bash
-docker-compose up --build
+docker compose up --build
 ```
 
 Este comando:
@@ -52,6 +101,7 @@ Este comando:
 - Descarga las imágenes base necesarias
 - Inicia PostgreSQL y MongoDB
 - Inicia los 3 microservicios (users, books, gateway)
+- Inicia el servidor web del frontend (Nginx)
 - Configura la red entre contenedores
 
 **Tiempo de inicio**: 30-60 segundos la primera vez
@@ -60,6 +110,7 @@ Este comando:
 
 Los servicios estarán disponibles en:
 
+- **Frontend**: http://localhost:3000 ⭐ (Abre este en tu navegador)
 - **API Gateway**: http://localhost:8080
 - **Documentación API (Swagger)**: http://localhost:8080/docs
 - **Health Check Gateway**: http://localhost:8080/health
@@ -69,6 +120,7 @@ Los servicios estarán disponibles en:
 ### Ver logs de los servicios
 
 ```bash
+docker logs ink_frontend
 docker logs ink_gateway
 docker logs ink_users
 docker logs ink_books
@@ -77,40 +129,12 @@ docker logs ink_books
 ### Detener los servicios
 
 ```bash
-docker-compose down
+docker compose down
 ```
 
-## 4. Cómo acceder a la parte cliente
+## 4. Usar la aplicación
 
-### Opción 1: Abrir directamente el archivo HTML
-
-1. Navega a la carpeta `frontend`
-2. Abre el archivo `index.html` en tu navegador:
-   - Doble clic en `index.html`, o
-   - Desde el navegador: `Archivo > Abrir archivo` → selecciona `index.html`
-
-### Opción 2: Usar un servidor local (recomendado)
-
-Con Visual Studio Code:
-1. Instala la extensión "Live Server"
-2. Click derecho en `index.html` → "Open with Live Server"
-
-Con Python:
-```bash
-cd frontend
-python -m http.server 3000
-```
-Luego abre: http://localhost:3000
-
-Con Node.js:
-```bash
-cd frontend
-npx serve .
-```
-
-### Usar la aplicación
-
-1. La aplicación se abrirá en la página de inicio
+1. Abre tu navegador en **http://localhost:3000**
 2. Puedes buscar libros sin necesidad de login
 3. Para usar favoritos, debes registrarte o hacer login
 4. Accede a la documentación de la API en: http://localhost:8080/docs
@@ -119,6 +143,7 @@ npx serve .
 
 | Servicio | Puerto |
 |----------|--------|
+| Frontend | 3000 |
 | Gateway | 8080 |
 | Users Service | 3001 |
 | Books Service | 5000 |
@@ -133,10 +158,11 @@ npx serve .
 
 **Los servicios no inician:**
 ```bash
-docker-compose down -v
-docker-compose up --build
+docker compose down -v
+docker compose up --build
 ```
 
 **El frontend no se conecta al backend:**
 - Verifica que el gateway esté corriendo: http://localhost:8080/health
 - Revisa la consola del navegador (F12) para ver errores CORS
+- Asegúrate de que todos los contenedores estén corriendo: `docker ps`

@@ -69,6 +69,14 @@ services:
     ports:
       - "8080:8080"
 
+  frontend:
+    build: ./frontend
+    container_name: ink_frontend
+    depends_on:
+      - gateway
+    ports:
+      - "3000:80"
+
 volumes:
   pgdata:
   mongodata:
