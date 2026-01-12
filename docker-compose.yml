@@ -1,0 +1,74 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: ink_postgres
+    environment:
+      POSTGRES_DB: ink
+      POSTGRES_USER: ink
+      POSTGRES_PASSWORD: inkpass
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./users/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ink -d ink"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  mongo:
+    image: mongo:7
+    container_name: ink_mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodata:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  users:
+    build: ./users
+    container_name: ink_users
+    environment:
+      PORT: 3001
+      DATABASE_URL: postgres://ink:inkpass@postgres:5432/ink
+      JWT_SECRET: "change_me_dev_secret"
+      CORS_ORIGIN: "*"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "3001:3001"
+
+  books:
+    build: ./books
+    container_name: ink_books
+    environment:
+      PORT: 5000
+      MONGO_URL: mongodb://mongo:27017
+    depends_on:
+      mongo:
+        condition: service_healthy
+    ports:
+      - "5000:5000"
+
+  gateway:
+    build: ./gateway
+    container_name: ink_gateway
+    environment:
+      PORT: 8080
+      USERS_SERVICE_URL: http://users:3001
+      BOOKS_SERVICE_URL: http://books:5000
+    depends_on:
+      - users
+      - books
+    ports:
+      - "8080:8080"
+
+volumes:
+  pgdata:
+  mongodata:

@@ -1,0 +1,489 @@
+openapi: 3.0.3
+info:
+  title: Ink & Quills API Gateway
+  version: 1.0.0
+  description: API Gateway para la aplicación Ink & Quills - gestión de usuarios, favoritos y búsqueda de libros
+servers:
+  - url: http://localhost:8080
+    description: Servidor local de desarrollo
+
+paths:
+  # ==================== USERS SERVICE ====================
+  /api/users/auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: Register new user
+      description: Crea una nueva cuenta de usuario con nombre, email y contraseña
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, email, password]
+              properties:
+                name: 
+                  type: string
+                  minLength: 2
+                  example: "Sara Bolaños"
+                email: 
+                  type: string
+                  format: email
+                  example: "sara@example.com"
+                password: 
+                  type: string
+                  minLength: 6
+                  maxLength: 128
+                  example: "password123"
+      responses:
+        "201":
+          description: Usuario creado exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+                  token:
+                    type: string
+                    description: JWT token para autenticación
+        "400":
+          description: Datos de entrada inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "409":
+          description: El email ya existe
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/users/auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Login user
+      description: Inicia sesión con email y contraseña
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: 
+                  type: string
+                  format: email
+                  example: "sara@example.com"
+                password: 
+                  type: string
+                  example: "password123"
+      responses:
+        "200":
+          description: Login exitoso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+                  token:
+                    type: string
+                    description: JWT token para autenticación
+        "400":
+          description: Datos inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "401":
+          description: Credenciales incorrectas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/users/me:
+    get:
+      tags:
+        - Users
+      summary: Get current user profile
+      description: Obtiene la información del usuario autenticado
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Información del usuario
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+        "401":
+          description: No autenticado o token inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/users/favorites:
+    get:
+      tags:
+        - Favorites
+      summary: List user favorites
+      description: Obtiene la lista de libros favoritos del usuario autenticado
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Lista de favoritos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  favorites:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Favorite'
+        "401":
+          description: No autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      tags:
+        - Favorites
+      summary: Add or update favorite
+      description: Añade un libro a favoritos o actualiza la información si ya existe
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [bookId, book]
+              properties:
+                bookId:
+                  type: string
+                  example: "/works/OL45804W"
+                book:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    title:
+                      type: string
+                    author:
+                      type: string
+                    year:
+                      type: string
+                    cover:
+                      type: string
+                    tags:
+                      type: array
+                      items:
+                        type: string
+                    desc:
+                      type: string
+      responses:
+        "201":
+          description: Favorito añadido o actualizado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+        "400":
+          description: Datos inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "401":
+          description: No autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/users/favorites/{bookId}:
+    delete:
+      tags:
+        - Favorites
+      summary: Remove favorite
+      description: Elimina un libro de la lista de favoritos
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: bookId
+          required: true
+          schema: 
+            type: string
+          description: ID del libro a eliminar
+          example: "/works/OL45804W"
+      responses:
+        "200":
+          description: Favorito eliminado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+        "400":
+          description: BookId inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "401":
+          description: No autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # ==================== BOOKS SERVICE ====================
+  /api/books/health:
+    get:
+      tags:
+        - Health
+      summary: Books service health check
+      description: Verifica que el servicio de libros esté funcionando
+      responses:
+        "200":
+          description: Servicio funcionando correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+
+  /api/books/search:
+    get:
+      tags:
+        - Books
+      summary: Search books
+      description: Busca libros en Open Library API
+      parameters:
+        - in: query
+          name: q
+          required: true
+          schema:
+            type: string
+          description: Término de búsqueda
+          example: "Harry Potter"
+      responses:
+        "200":
+          description: Resultados de búsqueda
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Book'
+        "400":
+          description: Parámetro de búsqueda faltante
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/books/detail:
+    get:
+      tags:
+        - Books
+      summary: Get book details by query parameter
+      description: Obtiene los detalles completos de un libro usando query parameter
+      parameters:
+        - in: query
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID del libro (formato /works/OLxxxxW)
+          example: "/works/OL45804W"
+      responses:
+        "200":
+          description: Detalles del libro
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookDetail'
+        "400":
+          description: ID faltante
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/books/{bookId}:
+    get:
+      tags:
+        - Books
+      summary: Get book details by path parameter
+      description: Obtiene los detalles completos de un libro usando path parameter
+      parameters:
+        - in: path
+          name: bookId
+          required: true
+          schema:
+            type: string
+          description: ID del libro (puede incluir /works/ o solo OLxxxxW)
+          example: "/works/OL45804W"
+      responses:
+        "200":
+          description: Detalles del libro
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookDetail'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token obtenido del login o registro
+  
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "Sara Bolaños"
+        email:
+          type: string
+          format: email
+          example: "sara@example.com"
+        created_at:
+          type: string
+          format: date-time
+          example: "2026-01-12T10:30:00Z"
+    
+    Book:
+      type: object
+      properties:
+        id:
+          type: string
+          description: ID del libro en Open Library
+          example: "/works/OL45804W"
+        title:
+          type: string
+          example: "Harry Potter and the Philosopher's Stone"
+        author:
+          type: string
+          example: "J.K. Rowling"
+        year:
+          type: string
+          example: "1997"
+        cover:
+          type: string
+          description: URL de la portada del libro
+          example: "https://covers.openlibrary.org/b/id/8739161-L.jpg"
+        tags:
+          type: array
+          items:
+            type: string
+          example: ["1997"]
+        desc:
+          type: string
+          description: Descripción corta (vacía en búsqueda)
+          example: ""
+    
+    BookDetail:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "/works/OL45804W"
+        title:
+          type: string
+          example: "Harry Potter and the Philosopher's Stone"
+        author:
+          type: string
+          example: "J.K. Rowling"
+        year:
+          type: string
+          example: "1997"
+        cover:
+          type: string
+          example: "https://covers.openlibrary.org/b/id/8739161-L.jpg"
+        tags:
+          type: array
+          items:
+            type: string
+          description: Temas/géneros del libro
+          example: ["Fantasy", "Magic", "Wizards", "Schools"]
+        desc:
+          type: string
+          description: Descripción completa del libro
+          example: "Harry Potter has never been the star of a Quidditch team..."
+    
+    Favorite:
+      type: object
+      properties:
+        bookId:
+          type: string
+          example: "/works/OL45804W"
+        book:
+          type: object
+          description: Snapshot completo del libro cuando se añadió a favoritos
+          properties:
+            id:
+              type: string
+            title:
+              type: string
+            author:
+              type: string
+            year:
+              type: string
+            cover:
+              type: string
+            tags:
+              type: array
+              items:
+                type: string
+            desc:
+              type: string
+        createdAt:
+          type: string
+          format: date-time
+          example: "2026-01-12T15:45:30Z"
+    
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Mensaje de error descriptivo
+          example: "Invalid credentials"

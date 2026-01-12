@@ -1,0 +1,58 @@
+﻿<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Ink & Quills | Tus reseñas literarias</title>
+    <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+    <header class="topbar">
+        <a class="brand" href="index.html">
+            <span class="logo">✒️</span>
+            <span>Ink & Quills</span>
+        </a>
+
+        <nav class="nav">
+            <a href="favorites.html">Favoritos</a>
+            <a class="btn btn-ghost" href="login.html">Login</a>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="hero-card">
+                <h1>Ink & Quills</h1>
+                <p>Tus reseñas literarias en un solo lugar</p>
+
+                <div class="search">
+                    <input id="q" type="search" placeholder="Buscar por título, autor o categoría..." />
+                    <button id="searchBtn" class="btn">Buscar</button>
+                </div>
+
+                <div class="chips">
+                    <button class="chip" data-tag="Ficción">Ficción</button>
+                    <button class="chip" data-tag="Crecimiento">Crecimiento</button>
+                    <button class="chip" data-tag="Filosofía">Filosofía</button>
+                    <button class="chip" data-tag="Sociedad">Sociedad</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="container">
+            <div class="section-head">
+                <h2>Libros destacados</h2>
+                <span class="muted">Explora y guarda tus favoritos</span>
+            </div>
+
+            <div id="grid" class="grid"></div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <span class="muted">© 2026 Ink & Quills</span>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>
