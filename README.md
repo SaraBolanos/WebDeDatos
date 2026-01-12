@@ -22,7 +22,6 @@ Este comando levanta automáticamente:
 - ✅ Bases de datos (PostgreSQL y MongoDB)
 - ✅ Todos los microservicios
 
-**¡Eso es todo!** No necesitas instalar Python, Node.js, ni ninguna otra dependencia.
 
 ### Acceder a la aplicación
 
